@@ -9,6 +9,7 @@ class AutoEncoder:
         pass
 
     def train(self):
+        # binary reconstruction loss for decoder
         pass
 
     def predict(self):
