@@ -1,20 +1,22 @@
 from keras.models import Sequential
-from keras.layers import Dense, ReLU, Conv2D, Conv2DTranspose, MaxPooling2D, Dropout, Flatten
+from keras.layers import Dense, Flatten, Reshape
+from tensorflow import keras
 
 
-def init_model():
+def init_model(learning_rate=0.01):
     model = Sequential()
-
-    # TODO: find a good architecture
-    # encoder
-    # input: images of size 28 x 28 x 3
-    # reduce dimensions, e.g. to 4
-
-    # TODO: how to use transposed 2d convolutions
-    # TODO: find out which scaling method to use
-    # decoder
-    # input: depends on dimensionality reduction of encoder
-    # output: 28 x 28 x 3 images
+    model.add(Flatten())
+    model.add(Dense(256, activation="relu"))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(32))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(256, activation="relu"))
+    model.add(Dense(784, activation="sigmoid"))
+    model.add(Reshape((28, 28, 1), input_shape=(784, )))
+    model.compile(
+        loss=keras.losses.binary_crossentropy,
+        optimizer=keras.optimizers.Adam(learning_rate=learning_rate)
+    )
 
     return model
 
@@ -22,18 +24,10 @@ def init_model():
 class AutoEncoder:
 
     def __init__(self):
-        # construct model using verification net as a template
-        # use convolutions with stride > 1 for encoder
-        # use transposed convolutions for the decoder
-        # construct single net, i.e. input -> dim reduction (encoding) -> dim inflation (decoding)
-        self.model = init_model()
+        self.model = init_model(0.01)
 
-    def train(self):
-        # binary reconstruction loss for decoder
-        pass
+    def train(self, x_train, y_train, x_val, y_val, epochs=5):
+        self.model.fit(x=x_train, y=y_train, batch_size=1024, epochs=epochs, validation_data=(x_val, y_val))
 
-    def predict(self):
-        # pass the given input through the encoder
-        # pass the output of the encoder through the decoder
-        # return the prediction from the decoder
-        pass
+    def predict(self, x):
+        return self.model.predict(x)
