@@ -13,11 +13,7 @@ def main():
     x_train, _ = generator.get_full_data_set(training=True)
     x_test, _ = generator.get_full_data_set(training=False)
 
-    ae = AutoEncoder(retrain=True, cnn=True)
-    ae.compile(
-        loss=keras.losses.binary_crossentropy,
-        optimizer=keras.optimizers.Adam(learning_rate=0.01)
-    )
+    ae = AutoEncoder(retrain=False, cnn=True)
     ae.fit(
         x=x_train,
         y=x_train,

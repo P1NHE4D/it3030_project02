@@ -1,5 +1,6 @@
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Conv2D, UpSampling2D
+from tensorflow import keras
 
 
 def construct_encoder(cnn):
@@ -40,13 +41,23 @@ def construct_decoder(cnn):
 
 class AutoEncoder(Model):
 
-    def __init__(self, file_path="sae/models/sae_model", retrain=False, cnn=True, *args, **kwargs):
+    def __init__(self, learning_rate=0.01, file_path="/Users/agerlach/uni_dev/it3030_project02/sae/models/sae_model", retrain=False, cnn=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.retrain = retrain
         self.file_path = file_path
         self.cnn = cnn
         self.encoder = construct_encoder(self.cnn)
         self.decoder = construct_decoder(self.cnn)
+        self.compile(
+            loss=keras.losses.binary_crossentropy,
+            optimizer=keras.optimizers.Adam(learning_rate=learning_rate)
+        )
+        try:
+            self.load_weights(filepath=self.file_path)
+            self.weights_loaded = True
+        except:
+            print("No predefined weights found")
+            self.weights_loaded = False
 
     def call(self, inputs, **kwargs):
         encoded = self.encoder(inputs)
@@ -55,13 +66,7 @@ class AutoEncoder(Model):
 
     # noinspection PyBroadException
     def fit(self, x, y, validation_data, **kwargs):
-        try:
-            self.load_weights(filepath=self.file_path)
-            weights_loaded = True
-        except:
-            print("Weights not found. Retraining...")
-            weights_loaded = False
-        if not weights_loaded or self.retrain:
+        if not self.weights_loaded or self.retrain:
             channels = x.shape[3]
             if channels > 1:
                 x = x[:, :, :, [0]]
@@ -72,6 +77,8 @@ class AutoEncoder(Model):
             self.save_weights(self.file_path)
 
     def predict(self, x, **kwargs):
+        if not self.weights_loaded:
+            raise Exception("No weights found. Model needs to be trained first.")
         x_count = x.shape[0]
         channels = x.shape[3]
         reshaped = False
