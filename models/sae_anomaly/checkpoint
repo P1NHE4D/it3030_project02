@@ -1,0 +1,2 @@
+model_checkpoint_path: "sae_anomaly"
+all_model_checkpoint_paths: "sae_anomaly"
