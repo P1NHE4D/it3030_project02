@@ -1,5 +1,6 @@
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
+from matplotlib import pyplot as plt
 from tensorflow import keras
 
 
@@ -78,9 +79,10 @@ class AutoEncoder(Model):
         reshaped = False
         if channels > 1:
             reshaped = True
-            x = x.T.reshape((x_count * channels, x.shape[1], x.shape[2], 1))
+            x = x.transpose(0, 3, 1, 2).reshape((x_count * channels, x.shape[1], x.shape[2], 1))
         pred = super().predict(x, **kwargs)
         if reshaped:
+            # TODO: reshape not correct
             pred = pred.T.reshape((x_count, pred.shape[1], pred.shape[2], channels))
         return pred
 
