@@ -20,9 +20,7 @@ def main():
     )
 
     pred = ae.predict(x_test)
-    for img in pred[:5]:
-        plt.imshow(img)
-        plt.show()
+
     loss = []
     for y_pred, y_true in zip(pred, x_test):
         loss.append(binary_crossentropy(y_pred=y_pred.flatten(), y_true=y_true.flatten()))
