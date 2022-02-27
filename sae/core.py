@@ -1,5 +1,5 @@
 from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Reshape, Conv2D, UpSampling2D
+from keras.layers import Dense, Flatten, Reshape, Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
 from tensorflow import keras
 
 
@@ -8,14 +8,14 @@ def construct_encoder(cnn):
         encoder = Sequential([
             Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
             Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
-            Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same"),
+            Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
         ])
     else:
         encoder = Sequential([
             Flatten(),
             Dense(256, activation="relu"),
             Dense(128, activation="relu"),
-            Dense(32),
+            Dense(32, activation="relu"),
         ])
     return encoder
 
@@ -23,10 +23,8 @@ def construct_encoder(cnn):
 def construct_decoder(cnn):
     if cnn:
         decoder = Sequential([
-            Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
-            UpSampling2D(),
-            Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
-            UpSampling2D(),
+            Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
+            Conv2DTranspose(16, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
             Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="sigmoid"),
         ])
     else:
@@ -54,10 +52,10 @@ class AutoEncoder(Model):
         )
         try:
             self.load_weights(filepath=self.file_path)
-            self.weights_loaded = True
+            self.model_trained = True
         except:
             print("No predefined weights found")
-            self.weights_loaded = False
+            self.model_trained = False
 
     def call(self, inputs, **kwargs):
         encoded = self.encoder(inputs)
@@ -65,19 +63,15 @@ class AutoEncoder(Model):
         return decoded
 
     # noinspection PyBroadException
-    def fit(self, x, y, validation_data, **kwargs):
-        if not self.weights_loaded or self.retrain:
-            channels = x.shape[3]
-            if channels > 1:
-                x = x[:, :, :, [0]]
-                y = y[:, :, :, [0]]
-                validation_data = (validation_data[0][:, :, :, [0]], validation_data[1][:, :, :, [0]])
-            super().fit(x=x, y=y, validation_data=validation_data, **kwargs)
+    def fit(self, **kwargs):
+        if not self.model_trained or self.retrain:
+            super().fit(**kwargs)
             print("Storing learned weights...")
             self.save_weights(self.file_path)
+            self.model_trained = True
 
     def predict(self, x, **kwargs):
-        if not self.weights_loaded:
+        if not self.model_trained:
             raise Exception("No weights found. Model needs to be trained first.")
         x_count = x.shape[0]
         channels = x.shape[3]
