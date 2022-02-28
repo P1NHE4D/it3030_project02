@@ -1,6 +1,5 @@
 from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Reshape, Conv2D, UpSampling2D, MaxPooling2D, Conv2DTranspose
-from matplotlib import pyplot as plt
+from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose
 from tensorflow import keras
 
 
