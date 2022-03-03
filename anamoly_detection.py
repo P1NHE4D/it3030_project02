@@ -6,7 +6,7 @@ from sae.core import AutoEncoder
 
 
 def main():
-    generator = StackedMNISTData(mode=DataMode.MONO_BINARY_MISSING, default_batch_size=2048)
+    generator = StackedMNISTData(mode=DataMode.COLOR_BINARY_MISSING, default_batch_size=2048)
 
     x_train, _ = generator.get_full_data_set(training=True)
     x_test, _ = generator.get_full_data_set(training=False)
@@ -19,15 +19,18 @@ def main():
         epochs=5
     )
 
-    pred = ae.predict(x_test)
+    channels = x_test.shape[-1]
+    pred = np.zeros(x_test.shape)
+    for channel in range(channels):
+        channel_pred = np.array(ae(x_test[:, :, :, channel]))
+        pred[:, :, :, channel] = channel_pred[:, :, :, 0]
 
     loss = []
     for y_pred, y_true in zip(pred, x_test):
         loss.append(binary_crossentropy(y_pred=y_pred.flatten(), y_true=y_true.flatten()))
     ind = np.argpartition(np.array(loss), -10)[-10:]
-    p = pred[ind]
-    for img in p:
-        plt.imshow(img*255)
+    for img in pred[ind]:
+        plt.imshow(img, cmap="gray")
         plt.show()
 
 

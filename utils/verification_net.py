@@ -4,12 +4,10 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
 import numpy as np
 
-from sae.core import AutoEncoder
-
 
 class VerificationNet:
 
-    def __init__(self, force_learn: bool = False, file_name: str = "./models/verification_model") -> None:
+    def __init__(self, force_learn: bool = False, file_name: str = "models/verf_net/verification_model") -> None:
         """
         Define model and set some parameters.
         The model is  made for classifying one channel only -- if we are looking at a
@@ -153,15 +151,13 @@ class VerificationNet:
 
 if __name__ == "__main__":
     gen = StackedMNISTData(mode=DataMode.MONO_BINARY_COMPLETE, default_batch_size=2048)
-    net = VerificationNet(force_learn=False)
+    net = VerificationNet(force_learn=True)
     net.train(generator=gen, epochs=5)
 
     # I have no data generator (VAE or whatever) here, so just use a sampled set
     img, labels = gen.get_random_batch(training=False,  batch_size=25000)
-    ae = AutoEncoder()
-    img_pred = ae.predict(img)
-    cov = net.check_class_coverage(data=img_pred, tolerance=.98)
-    pred, acc = net.check_predictability(data=img_pred, correct_labels=labels)
+    cov = net.check_class_coverage(data=img, tolerance=.98)
+    pred, acc = net.check_predictability(data=img, correct_labels=labels)
     print(f"Coverage: {100*cov:.2f}%")
     print(f"Predictability: {100*pred:.2f}%")
     print(f"Accuracy: {100 * acc:.2f}%")

@@ -39,7 +39,7 @@ def construct_decoder(cnn):
 
 class AutoEncoder(Model):
 
-    def __init__(self, learning_rate=0.01, file_path="/Users/agerlach/uni_dev/it3030_project02/sae/models/sae_model", retrain=False, cnn=True, *args, **kwargs):
+    def __init__(self, learning_rate=0.01, file_path="models/sae/sae", retrain=False, cnn=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.retrain = retrain
         self.file_path = file_path
@@ -69,21 +69,6 @@ class AutoEncoder(Model):
             print("Storing learned weights...")
             self.save_weights(self.file_path)
             self.model_trained = True
-
-    def predict(self, x, **kwargs):
-        if not self.model_trained:
-            raise Exception("No weights found. Model needs to be trained first.")
-        x_count = x.shape[0]
-        channels = x.shape[3]
-        reshaped = False
-        if channels > 1:
-            reshaped = True
-            x = x.transpose(0, 3, 1, 2).reshape((x_count * channels, x.shape[1], x.shape[2], 1))
-        pred = super().predict(x, **kwargs)
-        if reshaped:
-            # TODO: reshape not correct
-            pred = pred.T.reshape((x_count, pred.shape[1], pred.shape[2], channels))
-        return pred
 
     def get_config(self):
         super().get_config()
