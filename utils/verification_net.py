@@ -7,7 +7,7 @@ import numpy as np
 
 class VerificationNet:
 
-    def __init__(self, force_learn: bool = False, file_name: str = "models/verf_net/verification_model") -> None:
+    def __init__(self, force_learn: bool = False, file_name: str = "models/verf_net/verf_model") -> None:
         """
         Define model and set some parameters.
         The model is  made for classifying one channel only -- if we are looking at a
@@ -17,19 +17,19 @@ class VerificationNet:
         self.file_name = file_name
 
         model = Sequential()
-        model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
-        for _ in range(3):
-            model.add(Conv2D(64, (3, 3), activation='relu'))
-            model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(32, kernel_size=(3, 3), activation='leaky_relu', input_shape=(28, 28, 1), padding="same"))
+        for _ in range(1):
+            model.add(Conv2D(64, (3, 3), activation='leaky_relu', padding="same"))
+            model.add(MaxPooling2D(pool_size=(2, 2), padding="same"))
             model.add(Dropout(0.25))
 
         model.add(Flatten())
-        model.add(Dense(128, activation='relu'))
+        model.add(Dense(128, activation='leaky_relu'))
         model.add(Dropout(0.5))
         model.add(Dense(10, activation='softmax'))
 
         model.compile(loss=keras.losses.categorical_crossentropy,
-                      optimizer=keras.optimizers.Adam(learning_rate=.001),
+                      optimizer=keras.optimizers.Adam(learning_rate=.0001),
                       metrics=['accuracy'])
 
         self.model = model
