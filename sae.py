@@ -8,14 +8,19 @@ from utils.verification_net import VerificationNet
 def main():
     generator = StackedMNISTData(mode=DataMode.COLOR_BINARY_COMPLETE, default_batch_size=2048)
 
-    x_train, _ = generator.get_full_data_set(training=True)
+    x, _ = generator.get_full_data_set(training=True)
+    val_idx = np.random.choice(x.shape[0], round(x.shape[0] * 0.2), replace=False)
+    train_idx = np.setdiff1d(np.arange(start=0, stop=x.shape[0]), val_idx)
+    x_train = x[train_idx]
+    x_val = x[val_idx]
 
-    ae = AutoEncoder(retrain=False, cnn=True, file_path="models/sae_cnn/sae_cnn")
+    ae = AutoEncoder(retrain=True, cnn=True, file_path="models/sae_cnn/sae_cnn")
     ae.fit(
         x=x_train[:, :, :, [0]],
         y=x_train[:, :, :, [0]],
         batch_size=1024,
-        epochs=5
+        epochs=5,
+        validation_data=(x_val[:, :, :, [0]], x_val[:, :, :, [0]])
     )
 
     for tolerance, datamode in zip([0.8, 0.5], [DataMode.MONO_BINARY_COMPLETE, DataMode.COLOR_BINARY_COMPLETE]):

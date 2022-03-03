@@ -1,14 +1,14 @@
 from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose
+from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose, MaxPooling2D, Dropout
 from tensorflow import keras
 
 
 def construct_encoder(cnn):
     if cnn:
         encoder = Sequential([
-            Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
-            Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
-            Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
+            Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
+            Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
+            Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
         ])
     else:
         encoder = Sequential([
@@ -23,8 +23,10 @@ def construct_encoder(cnn):
 def construct_decoder(cnn):
     if cnn:
         decoder = Sequential([
-            Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
-            Conv2DTranspose(16, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
+            Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
+            Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
+            Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
+            Conv2DTranspose(16, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="sigmoid"),
         ])
     else:
