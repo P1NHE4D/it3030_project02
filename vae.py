@@ -1,65 +1,68 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 from utils.verification_net import VerificationNet
-
 from datasets.stacked_mnist import StackedMNISTData, DataMode
 from vae.core import VariationalAutoEncoder
 
 
 def main():
     generator = StackedMNISTData(mode=DataMode.MONO_BINARY_COMPLETE, default_batch_size=2048)
-
     x_train, _ = generator.get_full_data_set(training=True)
-    x_test, y_test = generator.get_full_data_set(training=False)
+    x_train = x_train[:, :, :, [0]]
 
     vae = VariationalAutoEncoder(
         learning_rate=0.01,
-        kl_weight=1,
+        kl_weight=0.5,
         encoded_dims=16,
-        retrain=False
     )
     vae.fit(
-        x=x_train[:, :, :, [0]],
-        y=x_train[:, :, :, [0]],
+        x=x_train,
+        y=x_train,
         batch_size=1024,
         epochs=15
     )
 
-    pred = vae(x_test).mean()
-    pred = np.array(pred)
+    for tolerance, datamode in zip([0.8, 0.5], [DataMode.MONO_BINARY_COMPLETE, DataMode.COLOR_BINARY_COMPLETE]):
 
-    net = VerificationNet()
-    # img, labels = generator.get_random_batch(training=False, batch_size=25000)
-    cov = net.check_class_coverage(data=pred, tolerance=.8)
-    pred, acc = net.check_predictability(data=pred, correct_labels=y_test)
-    print(f"Coverage: {100 * cov:.2f}%")
-    print(f"Predictability: {100 * pred:.2f}%")
-    print(f"Accuracy: {100 * acc:.2f}%")
+        # create test set
+        generator = StackedMNISTData(mode=datamode, default_batch_size=2048)
+        x_test, y_test = generator.get_full_data_set(training=False)
 
+        # predict test set
+        channels = x_test.shape[-1]
+        pred = np.zeros(x_test.shape)
+        for channel in range(channels):
+            channel_pred = np.array(vae(x_test[:, :, :, channel]).mean())
+            pred[:, :, :, channel] = channel_pred[:, :, :, 0]
 
-    # idx = np.random.choice(x_test.shape[0], 10)
-    # p = x_test[idx]
-    # imgs = vae(p).mean()
-    # for i, img in enumerate(imgs):
-    #     plt.imshow(p[i], cmap="gray")
-    #     plt.show()
-    #     plt.imshow(img, cmap="gray")
-    #     plt.show()
+        # show samples from the predicted images
+        idx = np.random.choice(pred.shape[0], 8, replace=False)
+        fig = plt.figure(figsize=(4., 4.))
+        grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
+        for ax, img in zip(grid, np.concatenate([pred[idx], x_test[idx] * 255])):
+            ax.set_axis_off()
+            ax.imshow(img, cmap="gray")
+        plt.show()
+
+        # run verification net on predictions to compute accuracy and predictability
+        net = VerificationNet()
+        cov = net.check_class_coverage(data=pred, tolerance=tolerance)
+        pred, acc = net.check_predictability(data=pred, correct_labels=y_test)
+        print(f"Coverage: {100 * cov:.2f}%")
+        print(f"Predictability: {100 * pred:.2f}%")
+        print(f"Accuracy: {100 * acc:.2f}%")
 
     # generative model
-    # rand_encoding = np.random.standard_normal((16, 1, 1, 16))
-    # decoding = vae.decoder(rand_encoding).mean()
-    # f, axs = plt.subplots(4, 4)
-    # row = 0
-    # col = 0
-    # for img in decoding:
-    #     axs[row, col].set_axis_off()
-    #     axs[row, col].imshow(img, cmap='gray')
-    #     col = (col + 1) % 4
-    #     if col == 0:
-    #         row += 1
-    # plt.subplots_adjust(wspace=0, hspace=0)
-    # plt.show()
+    rand_encoding = np.random.standard_normal((16, 1, 1, 16))
+    decoding = np.array(vae.decoder(rand_encoding).mean())
+    idx = np.random.choice(decoding.shape[0], 16, replace=False)
+    fig = plt.figure(figsize=(4., 4.))
+    grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
+    for ax, img in zip(grid, decoding[idx]):
+        ax.set_axis_off()
+        ax.imshow(img, cmap="gray")
+    plt.show()
 
 
 if __name__ == '__main__':

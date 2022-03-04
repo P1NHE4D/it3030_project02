@@ -38,9 +38,9 @@ class VariationalAutoEncoder(Model):
             reinterpreted_batch_ndims=1
         )
         self.encoder = Sequential([
-            Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
+            Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             # Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
-            Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
+            Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             # Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
             Flatten(),
             Dense(tfpl.IndependentNormal.params_size(self.encoded_dims)),
@@ -53,10 +53,10 @@ class VariationalAutoEncoder(Model):
         self.decoder = Sequential([
             Dense(7 * 7 * self.encoded_dims),
             Reshape((7, 7, self.encoded_dims)),
-            # Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
-            Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
-            # Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="relu"),
-            Conv2DTranspose(16, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="relu"),
+            Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
+            Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
+            Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
+            Conv2DTranspose(16, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same"),
             Flatten(),
             tfpl.IndependentBernoulli((28, 28, 1))
