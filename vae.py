@@ -54,7 +54,7 @@ def main():
         print(f"Accuracy: {100 * acc:.2f}%")
 
     # generative model
-    rand_encoding = np.random.standard_normal((16, 1, 1, 16))
+    rand_encoding = np.random.standard_normal((16, 16))
     decoding = np.array(vae.decoder(rand_encoding).mean())
     idx = np.random.choice(decoding.shape[0], 16, replace=False)
     fig = plt.figure(figsize=(4., 4.))
