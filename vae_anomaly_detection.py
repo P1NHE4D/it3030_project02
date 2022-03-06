@@ -15,7 +15,7 @@ def main():
 
     vae = VariationalAutoEncoder(
         learning_rate=0.01,
-        kl_weight=0.5,
+        kl_weight=0.1,
         encoded_dims=16,
         file_path="models/vae_anomaly/vae_anomaly"
     )
@@ -37,7 +37,6 @@ def main():
         decodings = np.array(vae.decoder(encodings).mean())
         entropies = []
         for img in tqdm(x_test):
-            # for each channel
             img_entropy = []
             for channel in range(channels):
                 stacked_img = np.repeat([img[:, :, channel]], sample_size, axis=0)
