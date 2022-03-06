@@ -9,13 +9,15 @@ def construct_encoder(cnn):
             Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
+            Flatten(),
+            Dense(32, activation="leaky_relu")
         ])
     else:
         encoder = Sequential([
             Flatten(),
-            Dense(256, activation="relu"),
-            Dense(128, activation="relu"),
-            Dense(32, activation="relu"),
+            Dense(256, activation="leaky_relu"),
+            Dense(128, activation="leaky_relu"),
+            Dense(32, activation="leaky_relu"),
         ])
     return encoder
 
@@ -23,6 +25,8 @@ def construct_encoder(cnn):
 def construct_decoder(cnn):
     if cnn:
         decoder = Sequential([
+            Dense(49, activation="leaky_relu"),
+            Reshape((7, 7, 1)),
             Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
             Conv2DTranspose(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(16, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
@@ -31,8 +35,8 @@ def construct_decoder(cnn):
         ])
     else:
         decoder = Sequential([
-            Dense(128, activation="relu"),
-            Dense(256, activation="relu"),
+            Dense(128, activation="leaky_relu"),
+            Dense(256, activation="leaky_relu"),
             Dense(784, activation="sigmoid"),
             Reshape((28, 28, 1), input_shape=(784,)),
         ])
