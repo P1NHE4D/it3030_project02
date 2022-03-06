@@ -56,8 +56,9 @@ def main():
         print(f"Accuracy: {100 * acc:.2f}%")
 
         # generative model
-        rand_encoding = np.random.randn(16, 32, channels)
-        decoding = np.zeros((16, 28, 28, channels))
+        sample_size = 1000
+        rand_encoding = np.random.randn(sample_size, 32, channels)
+        decoding = np.zeros((sample_size, 28, 28, channels))
         for channel in range(channels):
             decoding[:, :, :, channel] = np.array(ae.decoder(rand_encoding[:, :, channel]))[:, :, :, 0]
         idx = np.random.choice(decoding.shape[0], 16, replace=False)
@@ -67,6 +68,11 @@ def main():
             ax.set_axis_off()
             ax.imshow(img, cmap="gray")
         plt.show()
+        cov = net.check_class_coverage(data=decoding, tolerance=tolerance)
+        pred, _ = net.check_predictability(data=decoding)
+        print(f"Performance of generative model with {channels} channels using SAE")
+        print(f"Coverage: {100 * cov:.2f}%")
+        print(f"Predictability: {100 * pred:.2f}%")
 
 
 if __name__ == '__main__':
