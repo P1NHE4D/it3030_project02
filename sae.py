@@ -55,16 +55,18 @@ def main():
         print(f"Predictability: {100 * pred:.2f}%")
         print(f"Accuracy: {100 * acc:.2f}%")
 
-    # generative model
-    rand_encoding = np.random.randn(16, 32)
-    decoding = np.array(ae.decoder(rand_encoding))
-    idx = np.random.choice(decoding.shape[0], 16, replace=False)
-    fig = plt.figure(figsize=(4., 4.))
-    grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
-    for ax, img in zip(grid, decoding[idx]):
-        ax.set_axis_off()
-        ax.imshow(img, cmap="gray")
-    plt.show()
+        # generative model
+        rand_encoding = np.random.randn(16, 32, channels)
+        decoding = np.zeros((16, 28, 28, channels))
+        for channel in range(channels):
+            decoding[:, :, :, channel] = np.array(ae.decoder(rand_encoding[:, :, channel]))[:, :, :, 0]
+        idx = np.random.choice(decoding.shape[0], 16, replace=False)
+        fig = plt.figure(figsize=(4., 4.))
+        grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
+        for ax, img in zip(grid, decoding[idx]):
+            ax.set_axis_off()
+            ax.imshow(img, cmap="gray")
+        plt.show()
 
 
 if __name__ == '__main__':
