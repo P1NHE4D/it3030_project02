@@ -1,7 +1,9 @@
 import numpy as np
+from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
+
 from datasets.stacked_mnist import StackedMNISTData, DataMode
 from sae.core import AutoEncoder
-from utils.plot import show_image_grid
 from utils.verification_net import VerificationNet
 
 
@@ -14,12 +16,12 @@ def main():
     x_train = x[train_idx]
     x_val = x[val_idx]
 
-    ae = AutoEncoder(retrain=True, cnn=True, file_path="models/sae_cnn/sae_cnn")
+    ae = AutoEncoder(retrain=False, cnn=False, file_path="models/sae_nn/sae_nn")
     ae.fit(
         x=x_train[:, :, :, [0]],
         y=x_train[:, :, :, [0]],
         batch_size=1024,
-        epochs=5,
+        epochs=20,
         validation_data=(x_val[:, :, :, [0]], x_val[:, :, :, [0]])
     )
 
@@ -37,7 +39,13 @@ def main():
             pred[:, :, :, channel] = channel_pred[:, :, :, 0]
 
         # show samples from the predicted images
-        show_image_grid(pred)
+        idx = np.random.choice(pred.shape[0], 8, replace=False)
+        fig = plt.figure(figsize=(4., 4.))
+        grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
+        for ax, img in zip(grid, np.concatenate([pred[idx], x_test[idx] * 255])):
+            ax.set_axis_off()
+            ax.imshow(img, cmap="gray")
+        plt.show()
 
         # run verification net on predictions to compute accuracy and predictability
         net = VerificationNet()
@@ -48,9 +56,15 @@ def main():
         print(f"Accuracy: {100 * acc:.2f}%")
 
     # generative model
-    rand_encoding = np.random.randn(16, 7, 7)
+    rand_encoding = np.random.randn(16, 32)
     decoding = np.array(ae.decoder(rand_encoding))
-    show_image_grid(decoding)
+    idx = np.random.choice(decoding.shape[0], 16, replace=False)
+    fig = plt.figure(figsize=(4., 4.))
+    grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
+    for ax, img in zip(grid, decoding[idx]):
+        ax.set_axis_off()
+        ax.imshow(img, cmap="gray")
+    plt.show()
 
 
 if __name__ == '__main__':
