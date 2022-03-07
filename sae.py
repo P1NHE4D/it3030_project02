@@ -17,7 +17,7 @@ def main():
     x_val = x[val_idx]
 
     encoded_dims = 16
-    ae = AutoEncoder(retrain=True, encoded_dims=encoded_dims, cnn=False, file_path="models/sae_nn/sae_nn")
+    ae = AutoEncoder(retrain=False, encoded_dims=encoded_dims, cnn=False, file_path="models/sae_nn/sae_nn")
     ae.fit(
         x=x_train[:, :, :, [0]],
         y=x_train[:, :, :, [0]],
