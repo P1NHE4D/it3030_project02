@@ -5,6 +5,7 @@ from tensorflow import keras
 from tqdm import tqdm
 from datasets.stacked_mnist import StackedMNISTData, DataMode
 from vae.core import VariationalAutoEncoder
+import tensorflow as tf
 
 
 def main():
@@ -35,18 +36,18 @@ def main():
         channels = x_test.shape[-1]
         encodings = np.random.standard_normal((sample_size, 16))
         decodings = np.array(vae.decoder(encodings).mean())
-        entropies = []
+        probabilities = []
         for img in tqdm(x_test):
-            img_entropy = []
+            img_prob = []
             for channel in range(channels):
                 stacked_img = np.repeat([img[:, :, channel]], sample_size, axis=0)
                 entropy = keras.losses.BinaryCrossentropy()(stacked_img, decodings[:, :, :, 0])
-                exp_entropy = np.exp(-entropy)
-                img_entropy.append(exp_entropy)
-            entropies.append(np.mean(img_entropy))
-        entropies = np.array(entropies)
-        idx = np.argsort(entropies)[0:25]
-        print(entropies[idx])
+                p = np.exp(-entropy)
+                img_prob.append(p)
+            probabilities.append(np.mean(img_prob))
+        probabilities = np.array(probabilities)
+        idx = np.argsort(probabilities)[0:25]
+        print(probabilities[idx])
         fig = plt.figure(figsize=(5., 5.))
         grid = ImageGrid(fig, 111, nrows_ncols=(5, 5), axes_pad=0)
         for ax, img in zip(grid, x_test[idx]):
