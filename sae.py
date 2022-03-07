@@ -16,12 +16,13 @@ def main():
     x_train = x[train_idx]
     x_val = x[val_idx]
 
-    ae = AutoEncoder(retrain=False, cnn=False, file_path="models/sae_nn/sae_nn")
+    encoded_dims = 16
+    ae = AutoEncoder(retrain=True, encoded_dims=encoded_dims, cnn=False, file_path="models/sae_nn/sae_nn")
     ae.fit(
         x=x_train[:, :, :, [0]],
         y=x_train[:, :, :, [0]],
         batch_size=1024,
-        epochs=20,
+        epochs=50,
         validation_data=(x_val[:, :, :, [0]], x_val[:, :, :, [0]])
     )
 
@@ -57,7 +58,7 @@ def main():
 
         # generative model
         sample_size = 1000
-        rand_encoding = np.random.randn(sample_size, 32, channels)
+        rand_encoding = np.random.randn(sample_size, encoded_dims, channels)
         decoding = np.zeros((sample_size, 28, 28, channels))
         for channel in range(channels):
             decoding[:, :, :, channel] = np.array(ae.decoder(rand_encoding[:, :, channel]))[:, :, :, 0]

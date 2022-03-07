@@ -12,12 +12,12 @@ def main():
     x_train, _ = generator.get_full_data_set(training=True)
     x_train = x_train[:, :, :, [0]]
 
-    ae = AutoEncoder(cnn=False, file_path="models/sae_anomaly/sae_anomaly", learning_rate=0.01)
+    ae = AutoEncoder(cnn=False, encoded_dims=16, file_path="models/sae_anomaly/sae_anomaly", learning_rate=0.01)
     ae.fit(
         x=x_train,
         y=x_train,
         batch_size=1024,
-        epochs=20,
+        epochs=40,
     )
 
     for datamode in [DataMode.MONO_BINARY_MISSING, DataMode.COLOR_BINARY_MISSING]:

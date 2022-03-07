@@ -3,21 +3,21 @@ from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose, MaxPo
 from tensorflow import keras
 
 
-def construct_encoder(cnn):
+def construct_encoder(cnn, encoded_dims):
     if cnn:
         encoder = Sequential([
             Conv2D(16, input_shape=(28, 28, 1), kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(32, kernel_size=(3, 3), strides=(2, 2), padding="same", activation="leaky_relu"),
             Conv2D(1, kernel_size=(3, 3), strides=(1, 1), padding="same", activation="leaky_relu"),
             Flatten(),
-            Dense(32, activation="leaky_relu")
+            Dense(encoded_dims, activation="leaky_relu")
         ])
     else:
         encoder = Sequential([
             Flatten(),
             Dense(256, activation="leaky_relu"),
             Dense(128, activation="leaky_relu"),
-            Dense(32, activation="leaky_relu"),
+            Dense(encoded_dims, activation="leaky_relu"),
         ])
     return encoder
 
@@ -45,12 +45,13 @@ def construct_decoder(cnn):
 
 class AutoEncoder(Model):
 
-    def __init__(self, learning_rate=0.01, file_path="models/sae/sae", retrain=False, cnn=True, *args, **kwargs):
+    def __init__(self, learning_rate=0.01, encoded_dims=16, file_path="models/sae/sae", retrain=False, cnn=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.retrain = retrain
         self.file_path = file_path
         self.cnn = cnn
-        self.encoder = construct_encoder(self.cnn)
+        self.encoded_dims = encoded_dims
+        self.encoder = construct_encoder(self.cnn, self.encoded_dims)
         self.decoder = construct_decoder(self.cnn)
         self.compile(
             loss=keras.losses.binary_crossentropy,
