@@ -5,7 +5,6 @@ from tensorflow import keras
 from tqdm import tqdm
 from datasets.stacked_mnist import StackedMNISTData, DataMode
 from vae.core import VariationalAutoEncoder
-import tensorflow as tf
 
 
 def main():

@@ -1,5 +1,5 @@
 from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose, MaxPooling2D, Dropout
+from keras.layers import Dense, Flatten, Reshape, Conv2D, Conv2DTranspose
 from tensorflow import keras
 
 
