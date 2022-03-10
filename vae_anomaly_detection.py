@@ -8,11 +8,12 @@ from vae.core import VariationalAutoEncoder
 
 
 def main():
+    # get training data
     generator = StackedMNISTData(mode=DataMode.MONO_BINARY_MISSING, default_batch_size=2048)
-
     x_train, _ = generator.get_full_data_set(training=True)
     x_train = x_train[:, :, :, [0]]
 
+    # train model
     vae = VariationalAutoEncoder(
         learning_rate=0.01,
         kl_weight=0.1,
@@ -26,15 +27,20 @@ def main():
         epochs=30
     )
 
-    # predict test set
     for datamode in [DataMode.MONO_BINARY_MISSING, DataMode.COLOR_BINARY_MISSING]:
+        # get test set
         generator = StackedMNISTData(mode=datamode, default_batch_size=2048)
         x_test, y_test = generator.get_full_data_set(training=False)
 
+        # generate random encodings sampled from a standard normal probability distribution
         sample_size = 500
         channels = x_test.shape[-1]
         encodings = np.random.standard_normal((sample_size, 16))
+
+        # compute decoded images using VAE
         decodings = np.array(vae.decoder(encodings).mean())
+
+        # compute probability for image given the encodings
         probabilities = []
         for img in tqdm(x_test):
             img_prob = []
@@ -45,8 +51,9 @@ def main():
                 img_prob.append(p)
             probabilities.append(np.mean(img_prob))
         probabilities = np.array(probabilities)
+
+        # display the top 25 images with the lowest probability
         idx = np.argsort(probabilities)[0:25]
-        print(probabilities[idx])
         fig = plt.figure(figsize=(5., 5.))
         grid = ImageGrid(fig, 111, nrows_ncols=(5, 5), axes_pad=0)
         for ax, img in zip(grid, x_test[idx]):

@@ -7,11 +7,12 @@ from sae.core import AutoEncoder
 
 
 def main():
+    # get training data
     generator = StackedMNISTData(mode=DataMode.MONO_BINARY_MISSING, default_batch_size=2048)
-
     x_train, _ = generator.get_full_data_set(training=True)
     x_train = x_train[:, :, :, [0]]
 
+    # training model on dataset with missing data
     ae = AutoEncoder(cnn=False, encoded_dims=16, file_path="models/sae_anomaly/sae_anomaly", learning_rate=0.01)
     ae.fit(
         x=x_train,

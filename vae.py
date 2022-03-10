@@ -7,10 +7,12 @@ from vae.core import VariationalAutoEncoder
 
 
 def main():
+    # get training data
     generator = StackedMNISTData(mode=DataMode.MONO_BINARY_COMPLETE, default_batch_size=2048)
     x_train, _ = generator.get_full_data_set(training=True)
     x_train = x_train[:, :, :, [0]]
 
+    # train model
     vae = VariationalAutoEncoder(
         learning_rate=0.01,
         kl_weight=0.5,
@@ -54,11 +56,16 @@ def main():
         print(f"Accuracy: {100 * acc:.2f}%")
 
         # generative model
+        # generate random encodings
         sample_size = 1000
         rand_encoding = np.random.standard_normal((sample_size, 16, channels))
+
+        # predict decoded images using VAE
         decoding = np.zeros((sample_size, 28, 28, channels))
         for channel in range(channels):
             decoding[:, :, :, channel] = np.array(vae.decoder(rand_encoding[:, :, channel]).mean())[:, :, :, 0]
+
+        # plot sample images
         idx = np.random.choice(decoding.shape[0], 16, replace=False)
         fig = plt.figure(figsize=(4., 4.))
         grid = ImageGrid(fig, 111, nrows_ncols=(4, 4), axes_pad=0)
@@ -66,6 +73,8 @@ def main():
             ax.set_axis_off()
             ax.imshow(img, cmap="gray")
         plt.show()
+
+        # compute predictability and coverage
         cov = net.check_class_coverage(data=decoding, tolerance=tolerance)
         pred, _ = net.check_predictability(data=decoding)
         print(f"Performance of generative model with {channels} channels using VAE")
